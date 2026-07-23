@@ -1,0 +1,374 @@
+/* ===== Design tokens ===== */
+:root{
+  --paper: #F6F1E7;
+  --paper-2: #EFE7D6;
+  --ink: #1E2A38;
+  --ink-soft: #4B5563;
+  --teal: #0F5C56;
+  --teal-dark: #0A3F3B;
+  --line: #D8D0BE;
+
+  --cat-lodging: #C1542E;
+  --cat-lodging-bg: #F4E1D8;
+  --cat-attraction: #B9800F;
+  --cat-attraction-bg: #F5E7C8;
+  --cat-restaurant: #4C6B4A;
+  --cat-restaurant-bg: #E1E9DC;
+  --cat-other: #6B675C;
+  --cat-other-bg: #E7E3D8;
+
+  --radius-card: 14px;
+  --radius-tag: 999px;
+  --shadow-card: 0 1px 2px rgba(30,42,56,0.06), 0 4px 14px rgba(30,42,56,0.06);
+}
+
+*{box-sizing:border-box;}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Assistant', sans-serif;
+  font-size:16px;
+  line-height:1.6;
+}
+
+h1,h2,h3{
+  font-family:'Frank Ruhl Libre', serif;
+  font-weight:600;
+  margin:0 0 .3em 0;
+  color:var(--ink);
+}
+
+a{ color:var(--teal); text-decoration:none; }
+a:hover{ text-decoration:underline; }
+
+button, .btn{
+  font-family:'Assistant', sans-serif;
+  font-size:15px;
+  font-weight:600;
+  border:1px solid var(--teal);
+  background:var(--teal);
+  color:var(--paper);
+  padding:.55em 1.1em;
+  border-radius:10px;
+  cursor:pointer;
+  transition:opacity .15s ease;
+}
+button:hover, .btn:hover{ opacity:.88; }
+button.secondary, .btn.secondary{
+  background:transparent;
+  color:var(--teal);
+}
+button:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+  outline:2px solid var(--teal);
+  outline-offset:2px;
+}
+
+input, select, textarea{
+  font-family:'Assistant', sans-serif;
+  font-size:15px;
+  padding:.5em .7em;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#fff;
+  color:var(--ink);
+  width:100%;
+}
+
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:28px 20px 60px;
+}
+
+/* ===== Top bar (shared) ===== */
+.topbar{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:24px;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:14px;
+}
+.topbar .brand{
+  font-family:'Frank Ruhl Libre', serif;
+  font-size:22px;
+  font-weight:600;
+  letter-spacing:.02em;
+}
+.topbar .brand span{ color:var(--teal); }
+
+/* ===== Trip list page ===== */
+.new-trip-form{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:18px;
+  max-width:720px;
+  align-items:center;
+}
+.new-trip-form input[type="text"]{ flex:1 1 220px; }
+.new-trip-form input[type="date"]{ flex:0 1 160px; }
+
+.trips-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:18px;
+}
+
+.trip-card{
+  display:block;
+  position:relative;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius-card);
+  box-shadow:var(--shadow-card);
+  padding:22px 20px;
+  color:var(--ink);
+}
+.trip-card:hover{ text-decoration:none; border-color:var(--teal); }
+.trip-card-stamp{
+  display:inline-block;
+  font-size:20px;
+  color:var(--teal);
+  transform:rotate(-8deg);
+  margin-bottom:10px;
+}
+.trip-card h3{ font-size:19px; margin:0; }
+
+.empty-state{ color:var(--ink-soft); font-style:italic; }
+
+/* ===== Trip workspace ===== */
+.trip-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:18px;
+}
+.trip-header h1{ font-size:26px; }
+
+.view-toggle{
+  display:flex;
+  gap:6px;
+  background:var(--paper-2);
+  padding:4px;
+  border-radius:var(--radius-tag);
+  border:1px solid var(--line);
+}
+.view-toggle button{
+  background:transparent;
+  border:none;
+  color:var(--ink-soft);
+  padding:.4em 1em;
+  border-radius:var(--radius-tag);
+}
+.view-toggle button.active{
+  background:var(--teal);
+  color:var(--paper);
+}
+
+/* Day tabs styled like boarding-pass tags */
+.day-tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:14px 0 10px;
+}
+.day-tab{
+  position:relative;
+  background:#fff;
+  border:1px solid var(--line);
+  border-inline-start:4px solid var(--teal);
+  padding:.4em 1em;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:600;
+  color:var(--ink-soft);
+  cursor:pointer;
+}
+.day-tab.active{
+  border-color:var(--teal);
+  border-inline-start:4px solid var(--teal);
+  background:var(--teal);
+  color:var(--paper);
+}
+
+/* Category filter chips */
+.category-chips{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:.35em .9em;
+  border-radius:var(--radius-tag);
+  font-size:13px;
+  font-weight:600;
+  border:1px solid transparent;
+  cursor:pointer;
+  color:var(--ink-soft);
+  background:var(--paper-2);
+}
+.chip.active[data-cat="lodging"]{ background:var(--cat-lodging-bg); color:var(--cat-lodging); border-color:var(--cat-lodging); }
+.chip.active[data-cat="attraction"]{ background:var(--cat-attraction-bg); color:var(--cat-attraction); border-color:var(--cat-attraction); }
+.chip.active[data-cat="restaurant"]{ background:var(--cat-restaurant-bg); color:var(--cat-restaurant); border-color:var(--cat-restaurant); }
+.chip.active[data-cat="other"]{ background:var(--cat-other-bg); color:var(--cat-other); border-color:var(--cat-other); }
+.chip.active[data-cat="all"]{ background:var(--ink); color:var(--paper); }
+
+.workspace{
+  display:block;
+}
+.workspace > div{
+  width:100%;
+}
+
+#map{
+  width:100%;
+  height:480px;
+  border-radius:var(--radius-card);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-card);
+}
+
+/* Table */
+#table-wrap{
+  overflow-x:auto;
+}
+.places-table{
+  width:100%;
+  min-width:820px;
+  border-collapse:collapse;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius-card);
+  overflow:hidden;
+}
+.places-table th, .places-table td{
+  text-align:right;
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  font-size:14px;
+  vertical-align:top;
+}
+.places-table th{
+  background:var(--paper-2);
+  font-family:'Frank Ruhl Libre', serif;
+  font-weight:600;
+}
+.places-table tr:last-child td{ border-bottom:none; }
+.cat-pill{
+  display:inline-block;
+  padding:.15em .6em;
+  border-radius:var(--radius-tag);
+  font-size:12px;
+  font-weight:600;
+}
+.cat-pill.lodging{ background:var(--cat-lodging-bg); color:var(--cat-lodging); }
+.cat-pill.attraction{ background:var(--cat-attraction-bg); color:var(--cat-attraction); }
+.cat-pill.restaurant{ background:var(--cat-restaurant-bg); color:var(--cat-restaurant); }
+.cat-pill.other{ background:var(--cat-other-bg); color:var(--cat-other); }
+
+.row-actions{ display:flex; gap:6px; }
+.row-actions button{
+  padding:.25em .6em;
+  font-size:12px;
+  border-radius:6px;
+}
+
+/* Add-place panel */
+.panel{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius-card);
+  box-shadow:var(--shadow-card);
+  padding:20px;
+  margin-bottom:20px;
+}
+.panel h2{ font-size:18px; margin-bottom:14px; }
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.form-grid .full{ grid-column:1 / -1; }
+.field label{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  color:var(--ink-soft);
+  margin-bottom:4px;
+}
+.locate-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-top:6px;
+}
+.candidate-list{
+  margin-top:8px;
+  border:1px dashed var(--line);
+  border-radius:8px;
+  max-height:180px;
+  overflow-y:auto;
+}
+.candidate-item{
+  padding:8px 10px;
+  border-bottom:1px solid var(--line);
+  cursor:pointer;
+  font-size:14px;
+}
+.candidate-item:last-child{ border-bottom:none; }
+.candidate-item:hover{ background:var(--paper-2); }
+.candidate-item small{ display:block; color:var(--ink-soft); }
+
+.location-status{
+  font-size:13px;
+  color:var(--teal);
+  margin-top:6px;
+}
+
+.panel-footer{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:16px;
+}
+
+.suggestions-list{
+  display:grid;
+  gap:10px;
+}
+.suggestion-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 14px;
+  background:#fff;
+}
+.suggestion-card .meta{ font-size:13px; color:var(--ink-soft); }
+
+.hint{ font-size:13px; color:var(--ink-soft); }
+.error-text{ font-size:13px; color:var(--cat-lodging); }
+
+.toolbar{
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+[hidden]{ display:none !important; }

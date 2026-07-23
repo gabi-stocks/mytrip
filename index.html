@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מתכנן הטיולים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;600;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div class="brand">מתכנן <span>הטיולים</span></div>
+  </div>
+
+  <h1>הטיולים שלי</h1>
+  <p class="hint">כל טיול הוא מרחב נפרד עם מפה, קטגוריות וימים. אפשר לשתף את הקישור לטיול עם שאר המשתתפים.</p>
+
+  <form class="new-trip-form" id="new-trip-form">
+    <input type="text" id="new-trip-name" placeholder="שם הטיול, למשל: איטליה קיץ 2027" required>
+    <input type="date" id="new-trip-start" title="תאריך התחלה (אופציונלי)">
+    <input type="date" id="new-trip-end" title="תאריך סיום (אופציונלי)">
+    <button type="submit">צור טיול חדש</button>
+  </form>
+
+  <div class="toolbar">
+    <button class="secondary" id="restore-backup-btn" type="button">שחזור טיול מקובץ גיבוי</button>
+    <input type="file" id="restore-backup-input" accept="application/json" hidden>
+  </div>
+
+  <div class="trips-grid" id="trips-list">
+    <p class="hint">טוען טיולים…</p>
+  </div>
+</div>
+
+<script type="module" src="js/app-list.js"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>טיול — מתכנן הטיולים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;600;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div class="brand"><a href="index.html">מתכנן <span>הטיולים</span></a></div>
+    <button class="secondary" id="copy-link-btn" type="button">שיתוף הטיול עם המשפחה</button>
+  </div>
+
+  <div class="trip-header">
+    <h1 id="trip-name">טוען…</h1>
+    <div class="view-toggle">
+      <button data-view="map" class="active" type="button">מפה</button>
+      <button data-view="table" type="button">טבלה</button>
+    </div>
+  </div>
+
+  <div class="category-chips" id="category-chips">
+    <span class="chip active" data-cat="all">הכל</span>
+    <span class="chip" data-cat="lodging">לינה</span>
+    <span class="chip" data-cat="attraction">אטרקציות</span>
+    <span class="chip" data-cat="restaurant">מסעדות</span>
+    <span class="chip" data-cat="other">אחר</span>
+  </div>
+
+  <div class="day-tabs" id="date-tabs">
+    <span class="day-tab active" data-date="all">כל התאריכים</span>
+    <span class="day-tab" data-date="none">ללא תאריך</span>
+  </div>
+
+  <div class="panel" id="add-place-panel" hidden>
+    <h2>הוספת מקום</h2>
+    <div class="form-grid">
+      <div class="field full">
+        <label for="place-name">שם המקום</label>
+        <input type="text" id="place-name" placeholder="למשל: מלון דה-רוזה, פירנצה">
+        <div class="locate-row">
+          <button type="button" class="secondary" id="search-place-btn">חיפוש מיקום לפי השם</button>
+          <button type="button" class="secondary" id="pick-on-map-btn">סימון ידני על המפה</button>
+        </div>
+        <div class="location-status" id="location-status"></div>
+        <div class="candidate-list" id="candidate-list" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="place-category">קטגוריה</label>
+        <select id="place-category">
+          <option value="lodging">לינה</option>
+          <option value="attraction">אטרקציה</option>
+          <option value="restaurant">מסעדה</option>
+          <option value="other">אחר</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="place-date">תאריך (אופציונלי)</label>
+        <input type="date" id="place-date">
+      </div>
+
+      <div class="field">
+        <label for="place-order">מספור בסדר היום (לחישוב מרחקים)</label>
+        <input type="number" id="place-order" min="1" placeholder="למשל: 1, 2, 3...">
+      </div>
+
+      <div class="field full">
+        <label for="place-notes">הסבר קצר (אופי הפעילות)</label>
+        <textarea id="place-notes" rows="2" placeholder="אופי הפעילות, טיפים, שעות מומלצות..."></textarea>
+      </div>
+
+      <div class="field full">
+        <label for="place-personal-note">הערה אישית</label>
+        <textarea id="place-personal-note" rows="2" placeholder="הערה פרטית — טיפ, תזכורת, רושם אישי..."></textarea>
+      </div>
+
+      <div class="field full">
+        <label for="place-source">קישור מקור (בוקינג, אתר וכו')</label>
+        <input type="url" id="place-source" placeholder="https://...">
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button class="secondary" id="cancel-place-btn" type="button">ביטול</button>
+      <button id="save-place-btn" type="button">שמירת מקום</button>
+    </div>
+  </div>
+
+  <div class="panel" id="suggestions-panel" hidden>
+    <h2>הצעות באזור</h2>
+    <p class="hint">מבוסס על מרכז המפה הנוכחי.</p>
+    <div class="toolbar">
+      <button class="secondary" data-suggest-type="tourist_attraction" type="button">הצע אטרקציות</button>
+      <button class="secondary" data-suggest-type="restaurant" type="button">הצע מסעדות</button>
+    </div>
+    <div class="suggestions-list" id="suggestions-list"></div>
+  </div>
+
+  <div class="panel" id="trash-panel" hidden>
+    <h2>פח האשפה</h2>
+    <p class="hint">מקומות שנמחקו נשארים כאן עד ששוחזרו או שנמחקו לצמיתות.</p>
+    <div class="suggestions-list" id="trash-list"></div>
+  </div>
+
+  <div class="toolbar">
+    <button id="toggle-add-place" type="button">+ הוספת מקום</button>
+    <button class="secondary" id="toggle-suggestions" type="button">הצעות מקומות באזור</button>
+    <button class="secondary" id="export-word-btn" type="button">ייצוא לוורד</button>
+    <button class="secondary" id="backup-trip-btn" type="button">גיבוי (הורדת קובץ)</button>
+    <button class="secondary" id="toggle-trash" type="button">פח האשפה</button>
+  </div>
+
+  <div class="workspace">
+    <div id="map"></div>
+    <div id="table-wrap" hidden>
+      <table class="places-table" id="places-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>שם המקום</th>
+            <th>קטגוריה</th>
+            <th>תאריך</th>
+            <th>הסבר</th>
+            <th>הערה אישית</th>
+            <th>מרחק למקום הבא</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="places-tbody">
+          <tr><td colspan="8" class="hint">טוען מקומות…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app-trip.js"></script>
+</body>
+</html>
