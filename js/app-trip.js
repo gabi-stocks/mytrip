@@ -248,6 +248,7 @@ function renderCandidates(results) {
   [...els.candidateList.children].forEach((el, i) => {
     el.addEventListener("click", () => {
       const r = results[i];
+       els.placeName.value = r.name;
       setPendingLocation(r, "נבחר: " + r.name);
       els.candidateList.hidden = true;
     });
