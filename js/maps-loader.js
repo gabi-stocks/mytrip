@@ -3,7 +3,7 @@
 // יש לוודא ש-Maps JavaScript API וגם Places API מופעלים בפרויקט,
 // ומומלץ להגביל את המפתח לדומיין שבו האתר יתארח (למשל GitHub Pages).
 // ============================================================
-const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY";
+const GOOGLE_MAPS_API_KEY = "AIzaSyBmPeVb3F5FriwBYP10SoqXPdX7jfspQ8k";
 
 let loadingPromise = null;
 
