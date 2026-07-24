@@ -8,7 +8,7 @@
 // עם משתמש/סיסמה למנהל בלבד, ולהגביל ברמת כללי ה-Firestore Rules).
 //
 // אפשר (ומומלץ) להחליף את הקוד הבא למספר/מילה אחרים:
-const ADMIN_PIN = "2027";
+const ADMIN_PIN = "1234";
 
 const SESSION_KEY = "tripPlannerAdminUnlocked";
 
