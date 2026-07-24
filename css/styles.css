@@ -249,6 +249,7 @@ input, select, textarea{
 }
 .chip.active[data-cat="lodging"]{ background:var(--cat-lodging-bg); color:var(--cat-lodging); border-color:var(--cat-lodging); }
 .chip.active[data-cat="attraction"]{ background:var(--cat-attraction-bg); color:var(--cat-attraction); border-color:var(--cat-attraction); }
+.chip.active[data-cat="shopping"]{ background:var(--cat-trip-bg); color:var(--cat-trip); border-color:var(--cat-trip); }
 .chip.active[data-cat="restaurant"]{ background:var(--cat-restaurant-bg); color:var(--cat-restaurant); border-color:var(--cat-restaurant); }
 .chip.active[data-cat="other"]{ background:var(--cat-other-bg); color:var(--cat-other); border-color:var(--cat-other); }
 .chip.active[data-cat="all"]{ background:var(--ink); color:var(--paper); }
