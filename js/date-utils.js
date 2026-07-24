@@ -21,6 +21,16 @@ export function dateRange(start, end) {
   while (cur <= last) {
     out.push(cur.toISOString().slice(0, 10));
     cur.setDate(cur.getDate() + 1);
+    
   }
-  return out;
+  return out;// כל התאריכים ש"תפוסים" על ידי מקום נתון. ברוב המקרים זה פשוט התאריך שלו.
+// עבור לינה עם תאריך יציאה (checkOutDate) מוגדר — כל הלילות מהכניסה ועד
+// (לא כולל) תאריך היציאה, כי ביום היציאה כבר לא ישנים שם.
+export function occupiedDates(place) {
+  if (!place.date) return [];
+  if (place.category === "lodging" && place.checkOutDate && place.checkOutDate > place.date) {
+    return dateRange(place.date, place.checkOutDate).slice(0, -1);
+  }
+  return [place.date];
+}
 }
