@@ -20,6 +20,7 @@
     <div class="view-toggle">
       <button data-view="map" class="active" type="button">מפה</button>
       <button data-view="table" type="button">טבלה</button>
+      <button data-view="suggestions" type="button">הצעות</button>
     </div>
   </div>
 
@@ -28,7 +29,6 @@
     <span class="chip" data-cat="lodging">לינה</span>
     <span class="chip" data-cat="attraction">אטרקציות</span>
     <span class="chip" data-cat="restaurant">מסעדות</span>
-    <span class="chip" data-cat="trip">טיול</span>
     <span class="chip" data-cat="other">אחר</span>
   </div>
 
@@ -56,7 +56,6 @@
         <select id="place-category">
           <option value="lodging">לינה</option>
           <option value="attraction">אטרקציה</option>
-          <option value="trip">טיול</option>
           <option value="restaurant">מסעדה</option>
           <option value="other">אחר</option>
         </select>
@@ -98,16 +97,6 @@
     </div>
   </div>
 
-  <div class="panel" id="suggestions-panel" hidden>
-    <h2>הצעות באזור</h2>
-    <p class="hint">מבוסס על מרכז המפה הנוכחי.</p>
-    <div class="toolbar">
-      <button class="secondary" data-suggest-type="tourist_attraction" type="button">הצע אטרקציות</button>
-      <button class="secondary" data-suggest-type="restaurant" type="button">הצע מסעדות</button>
-    </div>
-    <div class="suggestions-list" id="suggestions-list"></div>
-  </div>
-
   <div class="panel" id="trash-panel" hidden>
     <h2>פח האשפה</h2>
     <p class="hint">מקומות שנמחקו נשארים כאן עד ששוחזרו או שנמחקו לצמיתות.</p>
@@ -116,7 +105,6 @@
 
   <div class="toolbar">
     <button id="toggle-add-place" type="button">+ הוספת מקום</button>
-    <button class="secondary" id="toggle-suggestions" type="button">הצעות מקומות באזור</button>
     <button class="secondary" id="export-word-btn" type="button">ייצוא לוורד</button>
     <button class="secondary" id="backup-trip-btn" type="button">גיבוי (הורדת קובץ)</button>
     <button class="secondary" id="toggle-trash" type="button">פח האשפה</button>
@@ -142,6 +130,14 @@
           <tr><td colspan="8" class="hint">טוען מקומות…</td></tr>
         </tbody>
       </table>
+    </div>
+    <div id="suggestions-wrap" hidden>
+      <p class="hint">מבוסס על מרכז המפה הנוכחי.</p>
+      <div class="toolbar">
+        <button class="secondary" data-suggest-type="tourist_attraction" type="button">הצע אטרקציות</button>
+        <button class="secondary" data-suggest-type="restaurant" type="button">הצע מסעדות</button>
+      </div>
+      <div class="suggestions-list" id="suggestions-list"></div>
     </div>
   </div>
 </div>
