@@ -304,6 +304,7 @@ input, select, textarea{
 }
 .cat-pill.lodging{ background:var(--cat-lodging-bg); color:var(--cat-lodging); }
 .cat-pill.attraction{ background:var(--cat-attraction-bg); color:var(--cat-attraction); }
+.cat-pill.trip{ background:var(--cat-trip-bg); color:var(--cat-trip); }
 .cat-pill.restaurant{ background:var(--cat-restaurant-bg); color:var(--cat-restaurant); }
 .cat-pill.other{ background:var(--cat-other-bg); color:var(--cat-other); }
 
