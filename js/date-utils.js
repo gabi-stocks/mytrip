@@ -12,6 +12,13 @@ export function formatDateShort(dateStr) {
   return d.toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "numeric" });
 }
 
+function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 // כל התאריכים בין start ל-end (כולל), כמערך מחרוזות "YYYY-MM-DD"
 export function dateRange(start, end) {
   if (!start || !end) return [];
@@ -19,7 +26,7 @@ export function dateRange(start, end) {
   let cur = new Date(start + "T00:00:00");
   const last = new Date(end + "T00:00:00");
   while (cur <= last) {
-    out.push(cur.toISOString().slice(0, 10));
+    out.push(toDateStr(cur));
     cur.setDate(cur.getDate() + 1);
   }
   return out;
