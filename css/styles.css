@@ -126,21 +126,48 @@ input, select, textarea{
   border:1px solid var(--line);
   border-radius:var(--radius-card);
   box-shadow:var(--shadow-card);
-  padding:22px 20px;
+  padding:18px 20px 20px;
   color:var(--ink);
 }
-.trip-card:hover{ text-decoration:none; border-color:var(--teal); }
+.trip-card:hover{ border-color:var(--teal); }
+.trip-card-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
 .trip-card-stamp{
   display:inline-block;
   font-size:20px;
   color:var(--teal);
   transform:rotate(-8deg);
-  margin-bottom:10px;
 }
-.trip-card h3{ font-size:19px; margin:0; }
+.trip-card-actions{
+  display:flex;
+  gap:4px;
+}
+.icon-btn{
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--ink-soft);
+  padding:2px 6px;
+  border-radius:6px;
+  font-size:15px;
+  line-height:1;
+  cursor:pointer;
+}
+.icon-btn:hover{
+  background:var(--paper-2);
+  border-color:var(--line);
+}
+.trip-card-link{
+  display:block;
+  color:var(--ink);
+}
+.trip-card-link:hover{ text-decoration:none; }
+.trip-card h3{ font-size:19px; margin:4px 0 0; }
 
 .empty-state{ color:var(--ink-soft); font-style:italic; }
-
 /* ===== Trip workspace ===== */
 .trip-header{
   display:flex;
