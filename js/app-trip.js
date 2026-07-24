@@ -295,10 +295,6 @@ async function savePlace() {
     alert("נא להזין שם מקום");
     return;
   }
-  if (!pendingLocation) {
-    alert("נא לאתר את המקום על המפה (חיפוש לפי שם או סימון ידני) לפני השמירה");
-    return;
-  }
   const category = els.placeCategory.value;
   const date = els.placeDate.value || null;
   const checkOutDate = category === "lodging" ? (els.placeCheckout.value || null) : null;
@@ -314,12 +310,14 @@ async function savePlace() {
     order: els.placeOrder.value ? Number(els.placeOrder.value) : null,
     notes: els.placeNotes.value.trim(),
     personalNote: els.placePersonalNote.value.trim(),
-    sourceLink: els.placeSource.value.trim() || null,
-    lat: pendingLocation.lat,
-    lng: pendingLocation.lng,
-    placeId: pendingLocation.placeId || null,
-    address: pendingLocation.address || ""
+    sourceLink: els.placeSource.value.trim() || null
   };
+  if (pendingLocation && typeof pendingLocation.lat === "number") {
+    data.lat = pendingLocation.lat;
+    data.lng = pendingLocation.lng;
+    data.placeId = pendingLocation.placeId || null;
+    data.address = pendingLocation.address || "";
+  }
 
   els.savePlaceBtn.disabled = true;
   try {
@@ -340,7 +338,9 @@ async function savePlace() {
 
 function startEditPlace(place) {
   editingPlaceId = place.id;
-  pendingLocation = { lat: place.lat, lng: place.lng, placeId: place.placeId, address: place.address };
+  pendingLocation = typeof place.lat === "number"
+    ? { lat: place.lat, lng: place.lng, placeId: place.placeId, address: place.address }
+    : null;
   pickingOnMap = false;
   els.pickOnMapBtn.textContent = "סימון ידני על המפה";
   els.candidateList.hidden = true;
@@ -352,14 +352,15 @@ function startEditPlace(place) {
   els.placeNotes.value = place.notes || "";
   els.placePersonalNote.value = place.personalNote || "";
   els.placeSource.value = place.sourceLink || "";
-  els.locationStatus.textContent = "המיקום הקיים נשמר, אפשר לשנות אם צריך";
+  els.locationStatus.textContent = pendingLocation
+    ? "המיקום הקיים נשמר, אפשר לשנות אם צריך"
+    : "לא סומן מיקום למקום הזה (אפשר להוסיף עכשיו, לא חובה)";
   updateCheckoutVisibility();
   els.addPlacePanel.hidden = false;
   els.suggestionsPanel.hidden = true;
   els.trashPanel.hidden = true;
   els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
 }
-
 async function trashThisPlace(place) {
   if (!confirm(`להעביר את "${place.name}" לפח האשפה? אפשר לשחזר משם בכל שלב.`)) return;
   try {
