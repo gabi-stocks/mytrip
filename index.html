@@ -24,9 +24,16 @@
     <button type="submit">צור טיול חדש</button>
   </form>
 
-  <div class="toolbar">
+ <div class="toolbar">
     <button class="secondary" id="restore-backup-btn" type="button">שחזור טיול מקובץ גיבוי</button>
+    <button class="secondary" id="toggle-trips-trash" type="button">פח אשפה של טיולים</button>
     <input type="file" id="restore-backup-input" accept="application/json" hidden>
+  </div>
+
+  <div class="panel" id="trips-trash-panel" hidden>
+    <h2>פח אשפה של טיולים</h2>
+    <p class="hint">טיולים שנמחקו נשארים כאן עד ששוחזרו או שנמחקו לצמיתות. פעולות אלה דורשות קוד מנהל.</p>
+    <div class="suggestions-list" id="trips-trash-list"></div>
   </div>
 
   <div class="trips-grid" id="trips-list">
