@@ -1,6 +1,6 @@
 import { db } from "./firebase-init.js";
 import {
-  collection, addDoc, doc, getDoc, onSnapshot,
+  collection, addDoc, doc, getDoc, getDocs, onSnapshot,
   updateDoc, deleteDoc, serverTimestamp, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
@@ -11,6 +11,8 @@ export async function createTrip(name, startDate = null, endDate = null) {
     name,
     startDate: startDate || null,
     endDate: endDate || null,
+    deleted: false,
+    deletedAt: null,
     createdAt: serverTimestamp()
   });
   return ref.id;
@@ -28,10 +30,31 @@ export async function getTrip(tripId) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
+export async function renameTrip(tripId, newName) {
+  return updateDoc(doc(db, "trips", tripId), { name: newName });
+}
+
+export async function trashTrip(tripId) {
+  return updateDoc(doc(db, "trips", tripId), {
+    deleted: true,
+    deletedAt: serverTimestamp()
+  });
+}
+
+export async function restoreTrip(tripId) {
+  return updateDoc(doc(db, "trips", tripId), {
+    deleted: false,
+    deletedAt: null
+  });
+}
+
+export async function purgeTrip(tripId) {
+  const placesSnap = await getDocs(collection(db, "trips", tripId, "places"));
+  await Promise.all(placesSnap.docs.map((d) => deleteDoc(d.ref)));
+  return deleteDoc(doc(db, "trips", tripId));
+}
+
 // ---------- Places (subcollection per trip) ----------
-// שימו לב: listenToPlaces מחזיר גם פריטים שסומנו כ"נמחקו" (deleted:true) —
-// אלה הפריטים בפח האשפה. מסכי התצוגה הרגילים אחראים לסנן אותם החוצה,
-// כדי שיהיה אפשר לשחזר מקום שנמחק בטעות.
 
 export function listenToPlaces(tripId, callback) {
   const q = query(collection(db, "trips", tripId, "places"), orderBy("createdAt", "asc"));
@@ -53,7 +76,6 @@ export async function updatePlace(tripId, placeId, changes) {
   return updateDoc(doc(db, "trips", tripId, "places", placeId), changes);
 }
 
-// מחיקה "רכה" — מעביר לפח האשפה במקום למחוק לצמיתות
 export async function trashPlace(tripId, placeId) {
   return updateDoc(doc(db, "trips", tripId, "places", placeId), {
     deleted: true,
@@ -68,7 +90,6 @@ export async function restorePlace(tripId, placeId) {
   });
 }
 
-// מחיקה לצמיתות מהפח — בלתי הפיכה
 export async function purgePlace(tripId, placeId) {
   return deleteDoc(doc(db, "trips", tripId, "places", placeId));
 }
