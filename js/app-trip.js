@@ -6,7 +6,7 @@ import {
 import { loadGoogleMaps } from "./maps-loader.js";
 import { searchPlacesByText, searchNearby } from "./places-search.js";
 import { CATEGORY_LABELS, CATEGORY_COLORS } from "./categories.js";
-import { formatDateShort, formatDateLong, dateRange } from "./date-utils.js";
+import { formatDateShort, formatDateLong, dateRange, occupiedDates } from "./date-utils.js";
 import { googleMapsLink, withDistancesToNext, formatKm } from "./geo-utils.js";
 import { exportTripToWord } from "./export-word.js";
 import { exportTripBackup } from "./backup.js";
@@ -27,7 +27,10 @@ const els = {
   addPlacePanel: document.getElementById("add-place-panel"),
   placeName: document.getElementById("place-name"),
   placeCategory: document.getElementById("place-category"),
+  placeDateLabel: document.getElementById("place-date-label"),
   placeDate: document.getElementById("place-date"),
+  placeCheckoutRow: document.getElementById("place-checkout-row"),
+  placeCheckout: document.getElementById("place-checkout"),
   placeOrder: document.getElementById("place-order"),
   placeNotes: document.getElementById("place-notes"),
   placePersonalNote: document.getElementById("place-personal-note"),
@@ -156,6 +159,8 @@ function bindUI() {
     renderMarkers();
     renderTable();
   });
+
+  els.placeCategory.addEventListener("change", updateCheckoutVisibility);
 
   els.toggleAddPlace.addEventListener("click", () => {
     resetPlaceForm();
@@ -308,6 +313,70 @@ async function savePlace() {
       await addPlace(tripId, data);
     }
     els.addPlacePanel.hidden = true;
+    function updateCheckoutVisibility() {
+  const isLodging = els.placeCategory.value === "lodging";
+  els.placeCheckoutRow.hidden = !isLodging;
+  els.placeDateLabel.textContent = isLodging ? "תאריך כניסה (אופציונלי)" : "תאריך (אופציונלי)";
+}
+
+function resetPlaceForm() {
+  editingPlaceId = null;
+  pendingLocation = null;
+  pickingOnMap = false;
+  els.placeName.value = "";
+  els.placeCategory.value = "lodging";
+  els.placeDate.value = currentDate !== "all" && currentDate !== "none" ? currentDate : "";
+  els.placeCheckout.value = "";
+  els.placeOrder.value = "";
+  els.placeNotes.value = "";
+  els.placePersonalNote.value = "";
+  els.placeSource.value = "";
+  els.locationStatus.textContent = "";
+  els.candidateList.hidden = true;
+  els.pickOnMapBtn.textContent = "סימון ידני על המפה";
+  updateCheckoutVisibility();
+}
+
+async function savePlace() {
+  const name = els.placeName.value.trim();
+  if (!name) {
+    alert("נא להזין שם מקום");
+    return;
+  }
+  if (!pendingLocation) {
+    alert("נא לאתר את המקום על המפה (חיפוש לפי שם או סימון ידני) לפני השמירה");
+    return;
+  }
+  const category = els.placeCategory.value;
+  const date = els.placeDate.value || null;
+  const checkOutDate = category === "lodging" ? (els.placeCheckout.value || null) : null;
+  if (checkOutDate && date && checkOutDate <= date) {
+    alert("תאריך היציאה חייב להיות אחרי תאריך הכניסה.");
+    return;
+  }
+  const data = {
+    name,
+    category,
+    date,
+    checkOutDate,
+    order: els.placeOrder.value ? Number(els.placeOrder.value) : null,
+    notes: els.placeNotes.value.trim(),
+    personalNote: els.placePersonalNote.value.trim(),
+    sourceLink: els.placeSource.value.trim() || null,
+    lat: pendingLocation.lat,
+    lng: pendingLocation.lng,
+    placeId: pendingLocation.placeId || null,
+    address: pendingLocation.address || ""
+  };
+
+  els.savePlaceBtn.disabled = true;
+  try {
+    if (editingPlaceId) {
+      await updatePlace(tripId, editingPlaceId, data);
+    } else {
+      await addPlace(tripId, data);
+    }
+    els.addPlacePanel.hidden = true;
     resetPlaceForm();
   } catch (err) {
     console.error(err);
@@ -318,6 +387,26 @@ async function savePlace() {
 }
 
 function startEditPlace(place) {
+  editingPlaceId = place.id;
+  pendingLocation = { lat: place.lat, lng: place.lng, placeId: place.placeId, address: place.address };
+  pickingOnMap = false;
+  els.pickOnMapBtn.textContent = "סימון ידני על המפה";
+  els.candidateList.hidden = true;
+  els.placeName.value = place.name || "";
+  els.placeCategory.value = place.category || "other";
+  els.placeDate.value = place.date || "";
+  els.placeCheckout.value = place.checkOutDate || "";
+  els.placeOrder.value = place.order ?? "";
+  els.placeNotes.value = place.notes || "";
+  els.placePersonalNote.value = place.personalNote || "";
+  els.placeSource.value = place.sourceLink || "";
+  els.locationStatus.textContent = "המיקום הקיים נשמר, אפשר לשנות אם צריך";
+  updateCheckoutVisibility();
+  els.addPlacePanel.hidden = false;
+  els.suggestionsPanel.hidden = true;
+  els.trashPanel.hidden = true;
+  els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
+}
   editingPlaceId = place.id;
   pendingLocation = { lat: place.lat, lng: place.lng, placeId: place.placeId, address: place.address };
   pickingOnMap = false;
@@ -358,14 +447,22 @@ function getFilteredPlaces() {
     const catOk = currentCategory === "all" || p.category === currentCategory;
     let dateOk = true;
     if (currentDate === "none") dateOk = !p.date;
-    else if (currentDate !== "all") dateOk = p.date === currentDate;
+    else if (currentDate !== "all") dateOk = occupiedDates(p).includes(currentDate);
     return catOk && dateOk;
   });
 }
 
-// מקבץ לפי תאריך (כרונולוגית, ללא-תאריך בסוף), ממיין בתוך כל קבוצה לפי
-// מספור/מועד יצירה, ומחשב מרחק בין עוקבים באותה קבוצה.
 function computeDisplayList(list) {
+  if (currentDate !== "all" && currentDate !== "none") {
+    const sorted = [...list].sort((a, b) => {
+      const ao = a.order ?? Infinity;
+      const bo = b.order ?? Infinity;
+      if (ao !== bo) return ao - bo;
+      return (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0);
+    });
+    return withDistancesToNext(sorted);
+  }
+
   const groups = new Map();
   for (const p of list) {
     const key = p.date || "__none__";
@@ -390,10 +487,12 @@ function computeDisplayList(list) {
 
 function computeDateList() {
   const fromTrip = trip?.startDate && trip?.endDate ? dateRange(trip.startDate, trip.endDate) : [];
-  const fromPlaces = [...new Set(getActivePlaces().map((p) => p.date).filter(Boolean))];
+  const fromPlaces = new Set();
+  for (const p of getActivePlaces()) {
+    for (const d of occupiedDates(p)) fromPlaces.add(d);
+  }
   return [...new Set([...fromTrip, ...fromPlaces])].sort();
 }
-
 function renderDateTabs() {
   const dates = computeDateList();
   const staticTabs = `
@@ -476,8 +575,24 @@ function renderMarkers() {
   }
 }
 
+function formatPlaceDateShort(place) {
+  if (!place.date) return "—";
+  if (place.category === "lodging" && place.checkOutDate && place.checkOutDate > place.date) {
+    return `${formatDateShort(place.date)}–${formatDateShort(place.checkOutDate)}`;
+  }
+  return formatDateShort(place.date);
+}
+
+function formatPlaceDateLong(place) {
+  if (!place.date) return "ללא תאריך";
+  if (place.category === "lodging" && place.checkOutDate && place.checkOutDate > place.date) {
+    return `${formatDateLong(place.date)} — ${formatDateLong(place.checkOutDate)}`;
+  }
+  return formatDateLong(place.date);
+}
+
 function showInfoWindow(marker, place) {
-  const dateLabel = place.date ? formatDateLong(place.date) : "ללא תאריך";
+  const dateLabel = formatPlaceDateLong(place);
   const link = place.sourceLink
     ? `<div><a href="${escapeHtml(place.sourceLink)}" target="_blank" rel="noopener">קישור מקור</a></div>`
     : "";
@@ -522,7 +637,7 @@ function renderTable() {
         <td>${place.order ?? "—"}</td>
         <td>${nameCell}</td>
         <td><span class="cat-pill ${place.category}">${CATEGORY_LABELS[place.category] || "אחר"}</span></td>
-        <td>${place.date ? formatDateShort(place.date) : "—"}</td>
+       <td>${formatPlaceDateShort(place)}</td>
         <td>${escapeHtml(place.notes || "")}</td>
         <td>${escapeHtml(place.personalNote || "")}</td>
         <td>${place.distanceToNextKm != null ? formatKm(place.distanceToNextKm) : "—"}</td>
@@ -595,7 +710,7 @@ function renderTrash() {
     <div class="suggestion-card" data-id="${p.id}">
       <div>
         <strong>${escapeHtml(p.name)}</strong>
-        <div class="meta">${CATEGORY_LABELS[p.category] || "אחר"}${p.date ? " · " + formatDateShort(p.date) : ""}</div>
+        <div class="meta">${CATEGORY_LABELS[p.category] || "אחר"}${p.date ? " · " + formatPlaceDateShort(p) : ""}</div>
       </div>
       <div class="row-actions">
         <button class="secondary" data-action="restore">שחזור</button>
