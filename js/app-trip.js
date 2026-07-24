@@ -7,7 +7,7 @@ import { loadGoogleMaps } from "./maps-loader.js";
 import { searchPlacesByText, searchNearby } from "./places-search.js";
 import { CATEGORY_LABELS, CATEGORY_COLORS } from "./categories.js";
 import { formatDateShort, formatDateLong, dateRange, occupiedDates } from "./date-utils.js";
-import { googleMapsLink, withDistancesToNext, formatKm } from "./geo-utils.js";
+import { googleMapsLink, withDistancesToNext, formatKm, haversineKm } from "./geo-utils.js";
 import { exportTripToWord } from "./export-word.js";
 import { exportTripBackup } from "./backup.js";
 
@@ -41,8 +41,7 @@ const els = {
   candidateList: document.getElementById("candidate-list"),
   cancelPlaceBtn: document.getElementById("cancel-place-btn"),
   savePlaceBtn: document.getElementById("save-place-btn"),
-  toggleSuggestions: document.getElementById("toggle-suggestions"),
-  suggestionsPanel: document.getElementById("suggestions-panel"),
+  suggestionsWrap: document.getElementById("suggestions-wrap"),
   suggestionsList: document.getElementById("suggestions-list"),
   toggleTrash: document.getElementById("toggle-trash"),
   trashPanel: document.getElementById("trash-panel"),
@@ -139,6 +138,7 @@ function bindUI() {
       els.viewToggleBtns.forEach((b) => b.classList.toggle("active", b === btn));
       els.mapDiv.hidden = btn.dataset.view !== "map";
       els.tableWrap.hidden = btn.dataset.view !== "table";
+      els.suggestionsWrap.hidden = btn.dataset.view !== "suggestions";
     });
   });
 
@@ -165,7 +165,6 @@ function bindUI() {
   els.toggleAddPlace.addEventListener("click", () => {
     resetPlaceForm();
     els.addPlacePanel.hidden = !els.addPlacePanel.hidden;
-    els.suggestionsPanel.hidden = true;
     els.trashPanel.hidden = true;
   });
   els.cancelPlaceBtn.addEventListener("click", () => {
@@ -201,20 +200,15 @@ function bindUI() {
 
   els.savePlaceBtn.addEventListener("click", savePlace);
 
-  els.toggleSuggestions.addEventListener("click", () => {
-    els.suggestionsPanel.hidden = !els.suggestionsPanel.hidden;
-    els.addPlacePanel.hidden = true;
-    els.trashPanel.hidden = true;
-  });
-
-  els.suggestionsPanel.querySelectorAll("[data-suggest-type]").forEach((btn) => {
+  els.suggestionsWrap.querySelectorAll("[data-suggest-type]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const type = btn.dataset.suggestType;
       els.suggestionsList.innerHTML = `<p class="hint">מחפש הצעות...</p>`;
       try {
-        const center = map.getCenter();
+        const centerLatLng = map.getCenter();
+        const center = { lat: centerLatLng.lat(), lng: centerLatLng.lng() };
         const results = await searchNearby(map, center, type);
-        renderSuggestions(results, type === "tourist_attraction" ? "attraction" : "restaurant");
+        renderSuggestions(results, type === "tourist_attraction" ? "attraction" : "restaurant", center);
       } catch (err) {
         console.error(err);
         els.suggestionsList.innerHTML = `<p class="error-text">החיפוש נכשל.</p>`;
@@ -225,7 +219,6 @@ function bindUI() {
   els.toggleTrash.addEventListener("click", () => {
     els.trashPanel.hidden = !els.trashPanel.hidden;
     els.addPlacePanel.hidden = true;
-    els.suggestionsPanel.hidden = true;
     if (!els.trashPanel.hidden) renderTrash();
   });
 
@@ -357,10 +350,10 @@ function startEditPlace(place) {
     : "לא סומן מיקום למקום הזה (אפשר להוסיף עכשיו, לא חובה)";
   updateCheckoutVisibility();
   els.addPlacePanel.hidden = false;
-  els.suggestionsPanel.hidden = true;
   els.trashPanel.hidden = true;
   els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
 }
+
 async function trashThisPlace(place) {
   if (!confirm(`להעביר את "${place.name}" לפח האשפה? אפשר לשחזר משם בכל שלב.`)) return;
   try {
@@ -387,9 +380,6 @@ function getFilteredPlaces() {
   });
 }
 
-// כשבוחרים תאריך ספציפי, כל הרשימה כבר שייכת לאותו תאריך (כולל לינה
-// מרובת-לילות שנכנסת דרך occupiedDates) — קבוצה אחת, ממוינת לפי מספור.
-// כשבוחרים "הכל"/"ללא תאריך", מקבצים כרונולוגית לפי תאריך הכניסה שנרשם.
 function computeDisplayList(list) {
   if (currentDate !== "all" && currentDate !== "none") {
     const sorted = [...list].sort((a, b) => {
@@ -598,23 +588,34 @@ function renderTable() {
 
 // ---------- הצעות מקומות קרובים ----------
 
-function renderSuggestions(results, category) {
+function renderSuggestions(results, category, center) {
   if (results.length === 0) {
     els.suggestionsList.innerHTML = `<p class="hint">לא נמצאו הצעות באזור זה.</p>`;
     return;
   }
   els.suggestionsList.innerHTML = results
-    .map(
-      (r, i) => `
+    .map((r, i) => {
+      const ratingLabel = r.rating ? `⭐ ${r.rating}` : "";
+      const distKm = center && typeof r.lat === "number" ? haversineKm(center, r) : null;
+      const distLabel = distKm != null ? formatKm(distKm) + " מאיתנו (אווירי)" : "";
+      const metaParts = [r.address, ratingLabel, distLabel].filter(Boolean).join(" · ");
+      const mapsLinkHtml = typeof r.lat === "number"
+        ? `<div><a href="${googleMapsLink(r)}" target="_blank" rel="noopener">לצפייה ב-Google Maps</a></div>`
+        : "";
+      return `
     <div class="suggestion-card" data-idx="${i}">
       <div>
         <strong>${escapeHtml(r.name)}</strong>
-        <div class="meta">${escapeHtml(r.address)}${r.rating ? " · ⭐ " + r.rating : ""}</div>
+        <div class="meta">${metaParts}</div>
+        ${mapsLinkHtml}
       </div>
-      <button class="secondary" data-action="add">הוספה לטיול</button>
+      <div class="suggestion-actions">
+        <button class="secondary" data-action="add">הוספה לטיול</button>
+        <button class="icon-btn" data-action="dismiss" title="הסרה מהרשימה">&times;</button>
+      </div>
     </div>
-  `
-    )
+  `;
+    })
     .join("");
 
   [...els.suggestionsList.children].forEach((card, i) => {
@@ -624,9 +625,11 @@ function renderSuggestions(results, category) {
       els.placeName.value = r.name;
       els.placeCategory.value = category;
       setPendingLocation(r, "נבחר מתוך ההצעות: " + r.name);
-      els.suggestionsPanel.hidden = true;
       els.addPlacePanel.hidden = false;
       els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
+    });
+    card.querySelector('[data-action="dismiss"]').addEventListener("click", () => {
+      card.remove();
     });
   });
 }
