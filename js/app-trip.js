@@ -253,7 +253,7 @@ function renderCandidates(results) {
   [...els.candidateList.children].forEach((el, i) => {
     el.addEventListener("click", () => {
       const r = results[i];
-       els.placeName.value = r.name;
+      els.placeName.value = r.name;
       setPendingLocation(r, "נבחר: " + r.name);
       els.candidateList.hidden = true;
     });
@@ -265,55 +265,7 @@ function setPendingLocation(loc, statusText) {
   els.locationStatus.textContent = statusText;
 }
 
-function resetPlaceForm() {
-  editingPlaceId = null;
-  pendingLocation = null;
-  pickingOnMap = false;
-  els.placeName.value = "";
-  els.placeCategory.value = "lodging";
-  els.placeDate.value = "";
-  els.placeOrder.value = "";
-  els.placeNotes.value = "";
-  els.placePersonalNote.value = "";
-  els.placeSource.value = "";
-  els.locationStatus.textContent = "";
-  els.candidateList.hidden = true;
-  els.pickOnMapBtn.textContent = "סימון ידני על המפה";
-}
-
-async function savePlace() {
-  const name = els.placeName.value.trim();
-  if (!name) {
-    alert("נא להזין שם מקום");
-    return;
-  }
-  if (!pendingLocation) {
-    alert("נא לאתר את המקום על המפה (חיפוש לפי שם או סימון ידני) לפני השמירה");
-    return;
-  }
-  const data = {
-    name,
-    category: els.placeCategory.value,
-    date: els.placeDate.value || null,
-    order: els.placeOrder.value ? Number(els.placeOrder.value) : null,
-    notes: els.placeNotes.value.trim(),
-    personalNote: els.placePersonalNote.value.trim(),
-    sourceLink: els.placeSource.value.trim() || null,
-    lat: pendingLocation.lat,
-    lng: pendingLocation.lng,
-    placeId: pendingLocation.placeId || null,
-    address: pendingLocation.address || ""
-  };
-
-  els.savePlaceBtn.disabled = true;
-  try {
-    if (editingPlaceId) {
-      await updatePlace(tripId, editingPlaceId, data);
-    } else {
-      await addPlace(tripId, data);
-    }
-    els.addPlacePanel.hidden = true;
-    function updateCheckoutVisibility() {
+function updateCheckoutVisibility() {
   const isLodging = els.placeCategory.value === "lodging";
   els.placeCheckoutRow.hidden = !isLodging;
   els.placeDateLabel.textContent = isLodging ? "תאריך כניסה (אופציונלי)" : "תאריך (אופציונלי)";
@@ -407,24 +359,6 @@ function startEditPlace(place) {
   els.trashPanel.hidden = true;
   els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
 }
-  editingPlaceId = place.id;
-  pendingLocation = { lat: place.lat, lng: place.lng, placeId: place.placeId, address: place.address };
-  pickingOnMap = false;
-  els.pickOnMapBtn.textContent = "סימון ידני על המפה";
-  els.candidateList.hidden = true;
-  els.placeName.value = place.name || "";
-  els.placeCategory.value = place.category || "other";
-  els.placeDate.value = place.date || "";
-  els.placeOrder.value = place.order ?? "";
-  els.placeNotes.value = place.notes || "";
-  els.placePersonalNote.value = place.personalNote || "";
-  els.placeSource.value = place.sourceLink || "";
-  els.locationStatus.textContent = "המיקום הקיים נשמר, אפשר לשנות אם צריך";
-  els.addPlacePanel.hidden = false;
-  els.suggestionsPanel.hidden = true;
-  els.trashPanel.hidden = true;
-  els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
-}
 
 async function trashThisPlace(place) {
   if (!confirm(`להעביר את "${place.name}" לפח האשפה? אפשר לשחזר משם בכל שלב.`)) return;
@@ -452,6 +386,9 @@ function getFilteredPlaces() {
   });
 }
 
+// כשבוחרים תאריך ספציפי, כל הרשימה כבר שייכת לאותו תאריך (כולל לינה
+// מרובת-לילות שנכנסת דרך occupiedDates) — קבוצה אחת, ממוינת לפי מספור.
+// כשבוחרים "הכל"/"ללא תאריך", מקבצים כרונולוגית לפי תאריך הכניסה שנרשם.
 function computeDisplayList(list) {
   if (currentDate !== "all" && currentDate !== "none") {
     const sorted = [...list].sort((a, b) => {
@@ -493,6 +430,7 @@ function computeDateList() {
   }
   return [...new Set([...fromTrip, ...fromPlaces])].sort();
 }
+
 function renderDateTabs() {
   const dates = computeDateList();
   const staticTabs = `
@@ -637,7 +575,7 @@ function renderTable() {
         <td>${place.order ?? "—"}</td>
         <td>${nameCell}</td>
         <td><span class="cat-pill ${place.category}">${CATEGORY_LABELS[place.category] || "אחר"}</span></td>
-       <td>${formatPlaceDateShort(place)}</td>
+        <td>${formatPlaceDateShort(place)}</td>
         <td>${escapeHtml(place.notes || "")}</td>
         <td>${escapeHtml(place.personalNote || "")}</td>
         <td>${place.distanceToNextKm != null ? formatKm(place.distanceToNextKm) : "—"}</td>
