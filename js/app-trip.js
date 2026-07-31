@@ -561,7 +561,7 @@ function showInfoWindow(marker, place) {
 function renderTable() {
   const list = computeDisplayList(getFilteredPlaces());
   if (list.length === 0) {
-    els.placesTbody.innerHTML = `<tr><td colspan="8" class="hint">אין מקומות להצגה בסינון הנוכחי.</td></tr>`;
+    els.placesTbody.innerHTML = `<tr><td colspan="9" class="hint">אין מקומות להצגה בסינון הנוכחי.</td></tr>`;
     return;
   }
   els.placesTbody.innerHTML = list
@@ -580,6 +580,7 @@ function renderTable() {
         <td>${escapeHtml(place.notes || "")}</td>
         <td>${escapeHtml(place.personalNote || "")}</td>
         <td>${place.distanceToNextKm != null ? formatKm(place.distanceToNextKm) : "—"}</td>
+        <td class="col-narrow">${place.sourceLink ? `<a href="${escapeHtml(place.sourceLink)}" target="_blank" rel="noopener">קישור</a>` : "—"}</td>
         <td class="row-actions">
           <button class="secondary" data-action="edit">עריכה</button>
           <button class="secondary" data-action="delete">מחיקה</button>
