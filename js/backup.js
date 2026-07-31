@@ -8,8 +8,10 @@ export function exportTripBackup(trip, places) {
     trip: { name: trip.name, startDate: trip.startDate || null, endDate: trip.endDate || null },
     places: places.map((p) => ({
       name: p.name,
+      nameEn: p.nameEn || null,
       category: p.category,
       date: p.date || null,
+      checkOutDate: p.checkOutDate || null,
       order: p.order ?? null,
       notes: p.notes || "",
       personalNote: p.personalNote || "",
