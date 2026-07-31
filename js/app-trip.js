@@ -26,6 +26,7 @@ const els = {
   toggleAddPlace: document.getElementById("toggle-add-place"),
   addPlacePanel: document.getElementById("add-place-panel"),
   placeName: document.getElementById("place-name"),
+  placeNameEn: document.getElementById("place-name-en"),
   placeCategory: document.getElementById("place-category"),
   placeDateLabel: document.getElementById("place-date-label"),
   placeDate: document.getElementById("place-date"),
@@ -269,6 +270,7 @@ function resetPlaceForm() {
   pendingLocation = null;
   pickingOnMap = false;
   els.placeName.value = "";
+  els.placeNameEn.value = "";
   els.placeCategory.value = "lodging";
   els.placeDate.value = currentDate !== "all" && currentDate !== "none" ? currentDate : "";
   els.placeCheckout.value = "";
@@ -297,6 +299,7 @@ async function savePlace() {
   }
   const data = {
     name,
+    nameEn: els.placeNameEn.value.trim() || null,
     category,
     date,
     checkOutDate,
@@ -338,6 +341,7 @@ function startEditPlace(place) {
   els.pickOnMapBtn.textContent = "סימון ידני על המפה";
   els.candidateList.hidden = true;
   els.placeName.value = place.name || "";
+  els.placeNameEn.value = place.nameEn || "";
   els.placeCategory.value = place.category || "other";
   els.placeDate.value = place.date || "";
   els.placeCheckout.value = place.checkOutDate || "";
@@ -522,6 +526,9 @@ function formatPlaceDateLong(place) {
 
 function showInfoWindow(marker, place) {
   const dateLabel = formatPlaceDateLong(place);
+  const nameEnHtml = place.nameEn
+    ? `<div dir="ltr" style="color:#4B5563; font-size:12px;">${escapeHtml(place.nameEn)}</div>`
+    : "";
   const link = place.sourceLink
     ? `<div><a href="${escapeHtml(place.sourceLink)}" target="_blank" rel="noopener">קישור מקור</a></div>`
     : "";
@@ -537,6 +544,7 @@ function showInfoWindow(marker, place) {
   infoWindow.setContent(`
     <div style="font-family:'Assistant',sans-serif; max-width:230px;">
       <strong>${escapeHtml(place.name)}</strong><br>
+      ${nameEnHtml}
       <span style="color:#4B5563;">${CATEGORY_LABELS[place.category] || "אחר"} · ${escapeHtml(dateLabel)}</span>
       <p style="margin:6px 0;">${escapeHtml(place.notes || "")}</p>
       ${personal}
@@ -558,9 +566,11 @@ function renderTable() {
   }
   els.placesTbody.innerHTML = list
     .map((place) => {
-      const nameCell = typeof place.lat === "number"
+      const nameHe = typeof place.lat === "number"
         ? `<a href="${googleMapsLink(place)}" target="_blank" rel="noopener">${escapeHtml(place.name)}</a>`
         : escapeHtml(place.name);
+      const nameEnHtml = place.nameEn ? `<div class="name-en" dir="ltr">${escapeHtml(place.nameEn)}</div>` : "";
+      const nameCell = nameHe + nameEnHtml;
       return `
       <tr data-id="${place.id}">
         <td>${place.order ?? "—"}</td>
