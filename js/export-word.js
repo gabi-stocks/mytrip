@@ -16,9 +16,10 @@ function sortKey(place) {
 function buildDayTable(places) {
   const ordered = withDistancesToNext([...places].sort((a, b) => sortKey(a) - sortKey(b)));
   const rows = ordered.map((p) => {
+    const nameText = escapeHtml(p.name) + (p.nameEn ? ` (${escapeHtml(p.nameEn)})` : "");
     const nameCell = (typeof p.lat === "number")
-      ? `<a href="${googleMapsLink(p)}">${escapeHtml(p.name)}</a>`
-      : escapeHtml(p.name);
+      ? `<a href="${googleMapsLink(p)}">${nameText}</a>`
+      : nameText;
     const distCell = p.distanceToNextKm != null ? formatKm(p.distanceToNextKm) + " למקום הבא" : "";
     return `
       <tr>
