@@ -21,6 +21,7 @@
       <button data-view="map" class="active" type="button">מפה</button>
       <button data-view="table" type="button">טבלה</button>
       <button data-view="suggestions" type="button">הצעות</button>
+      <button data-view="notes" type="button">הערות</button>
     </div>
   </div>
 
@@ -146,6 +147,16 @@
         <button class="secondary" data-suggest-type="restaurant" type="button">הצע מסעדות</button>
       </div>
       <div class="suggestions-list" id="suggestions-list"></div>
+    </div>
+    <div id="notes-wrap" hidden>
+      <div class="field full" style="margin-bottom:10px;">
+        <label for="note-input">הערה חדשה</label>
+        <textarea id="note-input" rows="3" placeholder="הערה כללית על הטיול..."></textarea>
+      </div>
+      <div class="toolbar">
+        <button id="add-note-btn" type="button">הוספת הערה</button>
+      </div>
+      <div class="suggestions-list" id="notes-list"></div>
     </div>
   </div>
 </div>
