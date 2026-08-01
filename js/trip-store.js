@@ -93,3 +93,23 @@ export async function restorePlace(tripId, placeId) {
 export async function purgePlace(tripId, placeId) {
   return deleteDoc(doc(db, "trips", tripId, "places", placeId));
 }
+
+// ---------- Notes (הערות כלליות על הטיול, לא קשורות למקום ספציפי) ----------
+
+export function listenToNotes(tripId, callback) {
+  const q = query(collection(db, "trips", tripId, "notes"), orderBy("createdAt", "asc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
+}
+
+export async function addNote(tripId, text) {
+  return addDoc(collection(db, "trips", tripId, "notes"), {
+    text,
+    createdAt: serverTimestamp()
+  });
+}
+
+export async function deleteNote(tripId, noteId) {
+  return deleteDoc(doc(db, "trips", tripId, "notes", noteId));
+}
