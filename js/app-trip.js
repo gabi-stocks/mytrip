@@ -1,7 +1,8 @@
 import { ensureSignedIn } from "./firebase-init.js";
 import {
   getTrip, listenToPlaces, addPlace, updatePlace,
-  trashPlace, restorePlace, purgePlace
+  trashPlace, restorePlace, purgePlace,
+  listenToNotes, addNote, deleteNote
 } from "./trip-store.js";
 import { loadGoogleMaps } from "./maps-loader.js";
 import { searchPlacesByText, searchNearby } from "./places-search.js";
@@ -44,6 +45,10 @@ const els = {
   savePlaceBtn: document.getElementById("save-place-btn"),
   suggestionsWrap: document.getElementById("suggestions-wrap"),
   suggestionsList: document.getElementById("suggestions-list"),
+  notesWrap: document.getElementById("notes-wrap"),
+  noteInput: document.getElementById("note-input"),
+  addNoteBtn: document.getElementById("add-note-btn"),
+  notesList: document.getElementById("notes-list"),
   toggleTrash: document.getElementById("toggle-trash"),
   trashPanel: document.getElementById("trash-panel"),
   trashList: document.getElementById("trash-list"),
@@ -57,6 +62,7 @@ let polyline = null;
 let infoWindow = null;
 let trip = null;
 let allPlaces = [];
+let allNotes = [];
 let currentCategory = "all";
 let currentDate = "all";
 let pendingLocation = null;
@@ -143,6 +149,11 @@ async function init() {
     if (!els.trashPanel.hidden) renderTrash();
   });
 
+  listenToNotes(tripId, (notes) => {
+    allNotes = notes;
+    renderNotes();
+  });
+
   bindUI();
 }
 
@@ -176,6 +187,7 @@ function bindUI() {
       els.mapDiv.hidden = btn.dataset.view !== "map";
       els.tableWrap.hidden = btn.dataset.view !== "table";
       els.suggestionsWrap.hidden = btn.dataset.view !== "suggestions";
+      els.notesWrap.hidden = btn.dataset.view !== "notes";
     });
   });
 
@@ -255,6 +267,21 @@ function bindUI() {
         els.suggestionsList.innerHTML = `<p class="error-text">החיפוש נכשל.</p>`;
       }
     });
+  });
+
+  els.addNoteBtn.addEventListener("click", async () => {
+    const text = els.noteInput.value.trim();
+    if (!text) return;
+    els.addNoteBtn.disabled = true;
+    try {
+      await addNote(tripId, text);
+      els.noteInput.value = "";
+    } catch (err) {
+      console.error(err);
+      alert("הוספת ההערה נכשלה.");
+    } finally {
+      els.addNoteBtn.disabled = false;
+    }
   });
 
   els.toggleTrash.addEventListener("click", () => {
@@ -683,6 +710,39 @@ function renderSuggestions(results, category, center) {
     });
     card.querySelector('[data-action="dismiss"]').addEventListener("click", () => {
       card.remove();
+    });
+  });
+}
+
+// ---------- הערות כלליות ----------
+
+function renderNotes() {
+  if (allNotes.length === 0) {
+    els.notesList.innerHTML = `<p class="hint">אין עדיין הערות. אפשר להוסיף הערה למעלה.</p>`;
+    return;
+  }
+  els.notesList.innerHTML = allNotes
+    .map(
+      (n) => `
+    <div class="suggestion-card" data-id="${n.id}">
+      <div><p style="margin:0; white-space:pre-wrap;">${escapeHtml(n.text)}</p></div>
+      <button class="icon-btn" data-action="delete-note" title="מחיקה">&times;</button>
+    </div>
+  `
+    )
+    .join("");
+
+  [...els.notesList.children].forEach((card) => {
+    const note = allNotes.find((n) => n.id === card.dataset.id);
+    if (!note) return;
+    card.querySelector('[data-action="delete-note"]').addEventListener("click", async () => {
+      if (!confirm("למחוק את ההערה הזו?")) return;
+      try {
+        await deleteNote(tripId, note.id);
+      } catch (err) {
+        console.error(err);
+        alert("המחיקה נכשלה.");
+      }
     });
   });
 }
