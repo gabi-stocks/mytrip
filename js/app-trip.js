@@ -63,6 +63,26 @@ let pendingLocation = null;
 let pickingOnMap = false;
 let editingPlaceId = null;
 
+// עוקב אם אנחנו כרגע ב"שכבת היסטוריה" שנפתחה בשביל פאנל ההוספה/עריכה —
+// כדי שכפתור "אחורה" בנייד יסגור את הפאנל במקום לצאת ישר לעמוד הבית.
+let addPlacePanelHistoryPushed = false;
+
+function openAddPlacePanel() {
+  els.addPlacePanel.hidden = false;
+  if (!addPlacePanelHistoryPushed) {
+    history.pushState({ panel: "add-place" }, "", location.href);
+    addPlacePanelHistoryPushed = true;
+  }
+}
+
+function closeAddPlacePanel() {
+  els.addPlacePanel.hidden = true;
+  if (addPlacePanelHistoryPushed) {
+    addPlacePanelHistoryPushed = false;
+    history.back();
+  }
+}
+
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str ?? "";
@@ -105,6 +125,14 @@ async function init() {
     setPendingLocation({ lat: e.latLng.lat(), lng: e.latLng.lng(), placeId: null, address: "" }, "המיקום נבחר על המפה");
     pickingOnMap = false;
     els.pickOnMapBtn.textContent = "סימון ידני על המפה";
+  });
+
+  window.addEventListener("popstate", () => {
+    // לחיצת "אחורה" בזמן שהפאנל פתוח: סוגרים את הפאנל במקום לעזוב את העמוד.
+    if (!els.addPlacePanel.hidden) {
+      els.addPlacePanel.hidden = true;
+      addPlacePanelHistoryPushed = false;
+    }
   });
 
   listenToPlaces(tripId, (places) => {
@@ -173,11 +201,15 @@ function bindUI() {
 
   els.toggleAddPlace.addEventListener("click", () => {
     resetPlaceForm();
-    els.addPlacePanel.hidden = !els.addPlacePanel.hidden;
+    if (els.addPlacePanel.hidden) {
+      openAddPlacePanel();
+    } else {
+      closeAddPlacePanel();
+    }
     els.trashPanel.hidden = true;
   });
   els.cancelPlaceBtn.addEventListener("click", () => {
-    els.addPlacePanel.hidden = true;
+    closeAddPlacePanel();
     resetPlaceForm();
   });
 
@@ -330,7 +362,7 @@ async function savePlace() {
     } else {
       await addPlace(tripId, data);
     }
-    els.addPlacePanel.hidden = true;
+    closeAddPlacePanel();
     resetPlaceForm();
   } catch (err) {
     console.error(err);
@@ -361,7 +393,7 @@ function startEditPlace(place) {
     ? "המיקום הקיים נשמר, אפשר לשנות אם צריך"
     : "לא סומן מיקום למקום הזה (אפשר להוסיף עכשיו, לא חובה)";
   updateCheckoutVisibility();
-  els.addPlacePanel.hidden = false;
+  openAddPlacePanel();
   els.trashPanel.hidden = true;
   els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
 }
@@ -646,7 +678,7 @@ function renderSuggestions(results, category, center) {
       els.placeName.value = r.name;
       els.placeCategory.value = category;
       setPendingLocation(r, "נבחר מתוך ההצעות: " + r.name);
-      els.addPlacePanel.hidden = false;
+      openAddPlacePanel();
       els.addPlacePanel.scrollIntoView({ behavior: "smooth" });
     });
     card.querySelector('[data-action="dismiss"]').addEventListener("click", () => {
