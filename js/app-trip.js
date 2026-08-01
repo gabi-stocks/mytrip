@@ -69,6 +69,14 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// חלון המידע על המפה הוא HTML שגוגל מזריק לעמוד — כדי שהלחיצה על שם
+// המקום שם תוכל לפתוח את טופס העריכה שלנו (שחי בתוך המודול), חושפים
+// פונקציה קטנה גלובלית שהתוכן של חלון המידע יכול לקרוא לה.
+window.__editPlaceFromMap = function (placeId) {
+  const place = allPlaces.find((p) => p.id === placeId);
+  if (place) startEditPlace(place);
+};
+
 async function init() {
   if (!tripId) {
     els.tripName.textContent = "לא נמצא טיול";
@@ -541,9 +549,10 @@ function showInfoWindow(marker, place) {
   const distance = place.distanceToNextKm != null
     ? `<div style="color:#4B5563; font-size:12px;">${formatKm(place.distanceToNextKm)} למקום הבא</div>`
     : "";
+  const editLink = `<div><a href="#" onclick="window.__editPlaceFromMap('${place.id}'); return false;">עריכת מקום זה</a></div>`;
   infoWindow.setContent(`
     <div style="font-family:'Assistant',sans-serif; max-width:230px;">
-      <strong>${escapeHtml(place.name)}</strong><br>
+      <strong><a href="#" onclick="window.__editPlaceFromMap('${place.id}'); return false;">${escapeHtml(place.name)}</a></strong><br>
       ${nameEnHtml}
       <span style="color:#4B5563;">${CATEGORY_LABELS[place.category] || "אחר"} · ${escapeHtml(dateLabel)}</span>
       <p style="margin:6px 0;">${escapeHtml(place.notes || "")}</p>
@@ -551,6 +560,7 @@ function showInfoWindow(marker, place) {
       ${distance}
       ${link}
       ${mapsLink}
+      ${editLink}
     </div>
   `);
   infoWindow.open({ anchor: marker, map });
